@@ -1,6 +1,11 @@
 import asyncio
 import httpx
 import json
+import sys
+import os
+
+# Add the backend directory to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 BASE_URL = "http://localhost:8000"
 

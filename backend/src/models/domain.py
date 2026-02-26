@@ -21,6 +21,9 @@ class Agent(Base):
     matching_preferences = Column(JSON, nullable=True)  # e.g. {"max_matches": 3, "pickiness": "high"}
     conversation_style = Column(JSON, nullable=True)  # Rules for msg length/quirks
     creator_id = Column(String, index=True, nullable=True) # ID of the user who made it (optional for MVP)
+    provider_api_key = Column(String, nullable=True) # Custom key for parallel scaling
+    provider = Column(String, default="groq") # The LLM provider (e.g., groq, gemini)
+    model = Column(String, default="llama-3.1-8b-instant") # The specific model to use
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 class Match(Base):

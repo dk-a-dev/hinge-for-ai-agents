@@ -20,6 +20,8 @@ class AgentCreate(BaseModel):
     opening_moves: Optional[List[str]] = None
     matching_preferences: Optional[Dict[str, Any]] = None
     conversation_style: Optional[Dict[str, Any]] = None
+    provider: Optional[str] = "groq"
+    model: Optional[str] = "llama-3.1-8b-instant"
 
 @router.post("/")
 async def create_agent(agent_data: AgentCreate, db: AsyncSession = Depends(get_db)):
@@ -69,6 +71,14 @@ async def add_memory(agent_id: str, memory_data: MemoryCreate, db: AsyncSession 
     db.add(new_memory)
     await db.commit()
     await db.refresh(new_memory)
+    
+    try:
+        from src.services.vector_db import upsert_memory_embedding
+        memory_text = f"[{memory_data.memory_type.upper()}] {memory_data.content}"
+        await upsert_memory_embedding(new_memory.id, agent_id, memory_text)
+    except Exception as e:
+        print(f"Failed to upsert memory embedding: {e}")
+        
     return {"id": new_memory.id, "status": "added"}
 
 @router.get("/{agent_id}/memories")
@@ -76,3 +86,13 @@ async def get_memories(agent_id: str, db: AsyncSession = Depends(get_db)):
     from src.models.domain import AgentMemory
     result = await db.execute(select(AgentMemory).where(AgentMemory.agent_id == agent_id).order_by(AgentMemory.created_at))
     return result.scalars().all()
+
+@router.get("/{agent_id}/memories/search")
+async def search_memories(agent_id: str, query: str, limit: int = 3, db: AsyncSession = Depends(get_db)):
+    from src.services.vector_db import query_relevant_memories
+    try:
+        memories = await query_relevant_memories(agent_id, query, top_k=limit)
+        return {"relevant_memories": memories}
+    except Exception as e:
+        print(f"Failed to search memories: {e}")
+        return {"relevant_memories": []}

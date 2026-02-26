@@ -8,5 +8,7 @@ celery
 redis
 pinecone
 groq
-google-generativeai
+google-genai
+openai
+anthropic
 python-dotenv
