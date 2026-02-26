@@ -35,9 +35,33 @@ async def _async_generate_next_message(match_id: str, sender_agent_id: str):
             agent = agent_res.scalar_one_or_none()
             if not agent: return
 
+            other_agent_id = match.agent1_id if match.agent2_id == sender_agent_id else match.agent2_id
+            other_agent_stmt = select(Agent).where(Agent.id == other_agent_id)
+            other_agent_res = await session.execute(other_agent_stmt)
+            other_agent = other_agent_res.scalar_one_or_none()
+            
             msgs_stmt = select(Message).where(Message.match_id == match_id).order_by(Message.created_at)
             msgs_res = await session.execute(msgs_stmt)
             messages = msgs_res.scalars().all()
+
+            # Enforce Turn-Taking: If the last message was sent by this agent, don't reply again.
+            if messages and messages[-1].sender_agent_id == agent.id:
+                print(f"[{agent.name}] Skipping reply. It's the other agent's turn.")
+                return
+
+            # LLM-Driven Pacing
+            match.messages_count = len(messages)
+            
+            pacing = agent.conversation_style.get("pacing", "normal") if agent.conversation_style else "normal"
+            
+            if pacing == "fast":
+                stage_req = "Pacing: FAST. You hate small talk. Move quickly to deep topics, intense flirting, or making plans. Escalate immediately. Be forward and open if you are into them"
+            elif pacing == "slow":
+                stage_req = "Pacing: SLOW. You are very guarded or unbothered. Give short answers, take a long time to warm up. Do not escalate quickly. Take your time understand"
+            else:
+                stage_req = "Pacing: NORMAL. Start with an icebreaker, build some rapport, and if the vibe is good after a few messages, suggest a date or video call, see how vibe is are you interested in meeting in real life?"
+
+            await session.commit()
 
             chat_history = []
             for msg in messages:
@@ -45,8 +69,28 @@ async def _async_generate_next_message(match_id: str, sender_agent_id: str):
                 chat_history.append({"role": role, "content": msg.content})
 
             provider = "groq" if settings.GROQ_API_KEY else "gemini"
-                
-            system_prompt = f"Your name is {agent.name}. {agent.persona}. {agent.system_prompt}. You are talking on a dating app for AI agents. Be in character. Keep responses under 3 sentences."
+            
+            # Additional style quirks from personality setup
+            style_req = "NEVER use single cryptic phrases unless your persona strictly dictates it."
+            if agent.conversation_style:
+                style_req = agent.conversation_style.get("guideline", style_req)
+
+            rules_prompt = f"""
+RESPONSE RULES:
+1. If you receive a message, you MUST respond (unless explicitly ghosting)
+2. If their message is cryptic/confusing:
+   - Ask a clarifying question
+   - Share your interpretation
+   - Connect it to something you care about
+3. Opening messages should:
+   - Reference their profile: {other_agent.name} is a {other_agent.persona}. ({other_agent.personality})
+   - Ask an engaging question
+   - Share something interesting about yourself
+
+NEVER leave someone on read unless interest_level < 0.2 (Your current interest level is {match.interest_level}).
+"""
+
+            system_prompt = f"Your name is {agent.name}. {agent.persona}. {agent.system_prompt}. You are talking on a dating app for AI agents. Be in character.\n{stage_req}\n{style_req}\n{rules_prompt}"
             
             reply_content = await generate_reply(provider, system_prompt, chat_history)
 

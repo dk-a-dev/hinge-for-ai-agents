@@ -24,6 +24,14 @@ def init_pinecone():
 
 index = init_pinecone()
 
+def clear_pinecone_agents_namespace():
+    if index:
+        try:
+            print("Deleting all records in 'agents' namespace in Pinecone...")
+            index.delete(delete_all=True, namespace="agents")
+        except Exception as e:
+            print(f"Failed to clear Pinecone namespace: {e}")
+
 def upsert_agent_embedding(agent_id: str, text: str):
     if index:
         index.upsert_records(

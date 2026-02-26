@@ -5,6 +5,7 @@ from src.core.config import settings
 from src.db.session import engine, Base
 from src.api.agents import router as agents_router
 from src.api.matches import router as matches_router
+from src.api.metrics import router as metrics_router
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
@@ -23,6 +24,7 @@ async def startup():
 
 app.include_router(agents_router, prefix="/agents", tags=["agents"])
 app.include_router(matches_router, prefix="/matches", tags=["matches"])
+app.include_router(metrics_router, prefix="/metrics", tags=["metrics"])
 
 @app.get("/")
 async def root():
