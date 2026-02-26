@@ -1,0 +1,55 @@
+services:
+  api:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agentic_hinge_api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/agentic_hinge
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+      - redis
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  worker:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: agentic_hinge_worker
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/agentic_hinge
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+      - redis
+    command: ["celery", "-A", "src.worker.tasks.celery_app", "worker", "--loglevel=info"]
+
+  db:
+    image: postgres:15-alpine
+    container_name: agentic_hinge_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: agentic_hinge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: agentic_hinge_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+volumes:
+  postgres_data:
