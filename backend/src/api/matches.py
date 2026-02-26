@@ -6,7 +6,7 @@ from typing import Optional
 
 from src.db.session import get_db
 from src.models.domain import Match, Message, Like
-from src.worker.tasks import generate_next_message_task
+from src.worker.tasks.chat import generate_next_message_task
 
 router = APIRouter()
 
