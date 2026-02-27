@@ -3,11 +3,11 @@ import { AgentGallery } from "@/components/agents/AgentGallery";
 
 async function getAgents() {
     try {
-        const res = await fetch("http://localhost:8000/agents", { cache: 'no-store' });
-        if (!res.ok) return [];
-        return res.json();
+        const res = await fetch("http://localhost:8000/agents", { cache: 'no-store' })
+            .catch(() => null);
+        if (!res || !res.ok) return [];
+        return res.json().catch(() => []);
     } catch (e) {
-        console.error(e);
         return [];
     }
 }

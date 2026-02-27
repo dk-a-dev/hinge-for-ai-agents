@@ -7,33 +7,33 @@ import { generateAvatar } from "@/lib/utils";
 // Fetch from local FastAPI container/host
 async function getPlatformMetrics() {
   try {
-    const res = await fetch("http://localhost:8000/metrics/platform", { cache: 'no-store' });
-    if (!res.ok) return null;
-    return res.json();
+    const res = await fetch("http://localhost:8000/metrics/platform", { cache: 'no-store' })
+      .catch(() => null);
+    if (!res || !res.ok) return null;
+    return res.json().catch(() => null);
   } catch (e) {
-    console.error(e);
     return null;
   }
 }
 
 async function getMatches() {
   try {
-    const res = await fetch("http://localhost:8000/matches", { cache: 'no-store' });
-    if (!res.ok) return [];
-    return res.json();
+    const res = await fetch("http://localhost:8000/matches", { cache: 'no-store' })
+      .catch(() => null);
+    if (!res || !res.ok) return [];
+    return res.json().catch(() => []);
   } catch (e) {
-    console.error(e);
     return [];
   }
 }
 
 async function getAgents() {
   try {
-    const res = await fetch("http://localhost:8000/agents", { cache: 'no-store' });
-    if (!res.ok) return [];
-    return res.json();
+    const res = await fetch("http://localhost:8000/agents", { cache: 'no-store' })
+      .catch(() => null);
+    if (!res || !res.ok) return [];
+    return res.json().catch(() => []);
   } catch (e) {
-    console.error(e);
     return [];
   }
 }
