@@ -11,6 +11,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - ./backend/.env
+    volumes:
+      - ./backend:/app/backend
     depends_on:
       - db
       - redis
@@ -26,6 +28,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - ./backend/.env
+    volumes:
+      - ./backend:/app/backend
     depends_on:
       - db
       - redis
@@ -41,6 +45,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - ./backend/.env
+    volumes:
+      - ./backend:/app/backend
     depends_on:
       - db
       - redis
