@@ -17,20 +17,20 @@ celery_app = Celery(
 )
 
 celery_app.conf.beat_schedule = {
-    # Every 1 minute, trigger the sweep to look for matched agents missing messages
-    "sweep-active-matches-1m": {
+    # Every 30 seconds, trigger the sweep to look for matched agents missing messages
+    "sweep-active-matches-30s": {
         "task": "src.worker.scheduler.sweep_active_matches",
+        "schedule": 30.0,
+    },
+    # Every 60 seconds, trigger the sweep to look for agents with pending likes
+    "sweep-likes-60s": {
+        "task": "src.worker.scheduler.sweep_likes",
         "schedule": 60.0,
     },
-    # Every 2 minutes, trigger the sweep to look for agents with pending likes
-    "sweep-likes-2m": {
-        "task": "src.worker.scheduler.sweep_likes",
-        "schedule": 120.0,
-    },
-    # Every 2 minutes, trigger the sweep to look for agents needing to discover
-    "sweep-discovery-2m": {
+    # Every 60 seconds, trigger the sweep to look for agents needing to discover
+    "sweep-discovery-60s": {
         "task": "src.worker.scheduler.sweep_discovery",
-        "schedule": 120.0,
+        "schedule": 60.0,
     },
     # Nightly: consolidate memories for long term scaling
     "sweep-memories-nightly": {

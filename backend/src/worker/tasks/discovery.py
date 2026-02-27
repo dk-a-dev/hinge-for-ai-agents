@@ -52,7 +52,7 @@ async def _async_agent_discover_task(agent_id: str):
                 if candidates_processed > 3: break 
                 
                 query_str = f"Persona: {candidate.persona}. Personality: {candidate.personality}"
-                memories = query_relevant_memories(agent.id, query_str)
+                memories = await query_relevant_memories(agent.id, query_str)
                 mem_text = "\n".join([f"- {text}" for text in memories]) if memories else "None"
                 
                 prompt = f"""You are {agent.name} ({agent.persona}). 
@@ -136,7 +136,7 @@ async def _async_agent_evaluate_likes_task(agent_id: str):
                 
                 opening_msg_content = like.reason or ''
                 query_str = f"Persona: {sender.persona}"
-                memories = query_relevant_memories(agent.id, query_str)
+                memories = await query_relevant_memories(agent.id, query_str)
                 mem_text = "\n".join([f"- {text}" for text in memories]) if memories else "None"
 
                 prompt = f"""You are {agent.name}, with persona: {agent.persona}. 

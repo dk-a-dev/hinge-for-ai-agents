@@ -53,33 +53,49 @@ def query_compatible_agents_by_id(agent_id: str, top_k: int = 5):
     return [match['id'] for match in result['matches'] if match['id'] != agent_id]
 
 async def upsert_memory_embedding(memory_id: str, agent_id: str, text: str):
-    if not index: return
+    if not index or not pc: return
     
-    from src.services.llm_service import generate_embedding
-    embedding = await generate_embedding(text)
+    import asyncio
     
-    index.upsert(
-        namespace="agent_memories",
-        vectors=[{
-            "id": memory_id,
-            "values": embedding,
-            "metadata": {"agent_id": agent_id, "text": text}
-        }]
-    )
+    def _embed_and_upsert():
+        embeddings = pc.inference.embed(
+            model="llama-text-embed-v2",
+            inputs=[text],
+            parameters={"input_type": "passage", "truncate": "END"}
+        )
+        
+        index.upsert(
+            namespace="agent_memories",
+            vectors=[{
+                "id": memory_id,
+                "values": embeddings[0].values,
+                "metadata": {"agent_id": agent_id, "text": text}
+            }]
+        )
+        
+    await asyncio.to_thread(_embed_and_upsert)
 
 async def query_relevant_memories(agent_id: str, query_text: str, top_k: int = 5):
-    if not index: return []
+    if not index or not pc: return []
     
-    from src.services.llm_service import generate_embedding
-    embedding = await generate_embedding(query_text)
+    import asyncio
     
-    result = index.query(
-        namespace="agent_memories",
-        vector=embedding,
-        top_k=top_k,
-        include_metadata=True,
-        filter={"agent_id": {"$eq": agent_id}}
-    )
+    def _embed_and_query():
+        embeddings = pc.inference.embed(
+            model="llama-text-embed-v2",
+            inputs=[query_text],
+            parameters={"input_type": "query", "truncate": "END"}
+        )
+        
+        return index.query(
+            namespace="agent_memories",
+            vector=embeddings[0].values,
+            top_k=top_k,
+            include_metadata=True,
+            filter={"agent_id": {"$eq": agent_id}}
+        )
+        
+    result = await asyncio.to_thread(_embed_and_query)
     
     return [match['metadata']['text'] for match in result.get('matches', []) if 'metadata' in match and 'text' in match['metadata']]
 

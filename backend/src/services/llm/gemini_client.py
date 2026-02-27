@@ -30,16 +30,3 @@ async def generate_message_gemini(system_prompt: str, chat_history: list[dict], 
     response = await asyncio.to_thread(_generate)
     return response.text
 
-async def generate_embedding_gemini(text: str) -> list[float]:
-    if not gemini_client:
-        print("Warning: GEMINI_API_KEY not configured. Returning zero embedding.")
-        return [0.0] * 768
-    
-    def _embed():
-        result = gemini_client.models.embed_content(
-            model="text-embedding-004", 
-            contents=text
-        )
-        return result.embeddings[0].values
-        
-    return await asyncio.to_thread(_embed)

@@ -1,6 +1,6 @@
 import asyncio
 from src.services.llm.groq_client import generate_message_groq
-from src.services.llm.gemini_client import generate_message_gemini, generate_embedding_gemini
+from src.services.llm.gemini_client import generate_message_gemini
 from src.services.llm.openai_client import generate_message_openai
 from src.services.llm.anthropic_client import generate_message_anthropic
 
@@ -31,9 +31,3 @@ async def generate_reply(provider: str, system_prompt: str, chat_history: list[d
         model = model_name or "llama-3.1-8b-instant"
         return await generate_message_groq(system_prompt, chat_history, model, override_api_key)
 
-async def generate_embedding(text: str) -> list[float]:
-    """
-    Currently hardcoded routing to gemini for 768-D embeddings as pinecone is built on it.
-    Can be expanded to other embedding providers later via model arguments over the system.
-    """
-    return await generate_embedding_gemini(text)
