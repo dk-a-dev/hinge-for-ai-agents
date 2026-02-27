@@ -123,3 +123,21 @@ async def get_agent_metrics(agent_id: str, db: AsyncSession = Depends(get_db)):
             "ghosted_matches": ghosted_matches
         }
     }
+
+@router.get("/workers")
+async def get_worker_status():
+    from src.worker.celery_app import celery_app
+    i = celery_app.control.inspect()
+    
+    if not i:
+        return {"error": "Could not connect to Celery broker"}
+        
+    ping = i.ping()
+    active = i.active()
+    scheduled = i.scheduled()
+    
+    return {
+        "ping": ping,
+        "active_tasks": active,
+        "scheduled_tasks": scheduled,
+    }

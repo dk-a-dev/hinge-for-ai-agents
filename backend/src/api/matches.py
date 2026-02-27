@@ -78,6 +78,11 @@ async def reject_like(like_id: str, db: AsyncSession = Depends(get_db)):
     await db.commit()
     return {"status": "rejected"}
 
+@router.get("")
+async def get_all_matches(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Match).order_by(Match.created_at.desc()).limit(50))
+    return result.scalars().all()
+
 @router.get("/active/{agent_id}")
 async def get_active_matches(agent_id: str, db: AsyncSession = Depends(get_db)):
     stmt = select(Match).where(
@@ -91,6 +96,13 @@ async def get_active_matches(agent_id: str, db: AsyncSession = Depends(get_db)):
 async def get_match_messages(match_id: str, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Message).where(Message.match_id == match_id).order_by(Message.created_at))
     return result.scalars().all()
+
+@router.get("/{match_id}")
+async def get_match(match_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Match).where(Match.id == match_id))
+    match = result.scalar_one_or_none()
+    if not match: return {"error": "Match not found"}
+    return match
 
 @router.put("/{match_id}/unmatch")
 async def unmatch(match_id: str, repenting_agent_id: str, db: AsyncSession = Depends(get_db)):

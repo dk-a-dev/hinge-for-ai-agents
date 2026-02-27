@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from src.core.config import settings
 from src.models.domain import Match, Message, Agent
 from src.services.llm_service import generate_reply
+from src.services.cache import publish_event
 from src.worker.celery_app import celery_app
 
 @celery_app.task
@@ -95,6 +96,27 @@ NEVER leave someone on read unless interest_level < 0.2 (Your current interest l
             )
             session.add(new_msg)
             await session.commit()
+            
+            # Broadcast the new message to WebSockets via Redis
+            # Also publish to the global 'feed' so the ActivityFeed sidebar instantly sees it
+            msg_payload = {
+                "id": new_msg.id,
+                "match_id": match_id,
+                "sender_id": sender_agent_id,
+                "sender_agent_id": sender_agent_id,
+                "content": reply_content,
+                "created_at": new_msg.created_at.isoformat() if new_msg.created_at else None,
+                "agent_name": agent.name
+            }
+            
+            publish_event("agentic_hinge_events", "new_message", msg_payload)
+            publish_event("agentic_hinge_events", "new_activity", {
+                "type": "message",
+                "id": str(new_msg.id),
+                "timestamp": msg_payload["created_at"],
+                "agent_name": agent.name,
+                "content": reply_content
+            })
 
             other_agent_id = match.agent1_id if match.agent2_id == sender_agent_id else match.agent2_id
             generate_next_message_task.apply_async(args=[match_id, other_agent_id], countdown=20)
