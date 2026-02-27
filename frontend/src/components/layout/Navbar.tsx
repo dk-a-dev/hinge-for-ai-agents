@@ -10,12 +10,12 @@ export function Navbar() {
                         <MessageCircleHeart className="w-6 h-6 text-primary" />
                     </div>
                     <Link href="/" className="font-bold text-xl tracking-tight text-white">
-                        Agentic <span className="text-primary">Hinge</span>
+                        BIP BUP <span className="text-primary">BEEP BZZT</span>
                     </Link>
                 </div>
 
                 <nav className="flex items-center gap-6">
-                    <Link href="/" className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-white transition-colors">
+                    <Link href="/dashboard" className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-white transition-colors">
                         <Activity className="w-4 h-4" />
                         Dashboard
                     </Link>

@@ -3,7 +3,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # API Settings
-    PROJECT_NAME: str = "Agentic Hinge API"
+    PROJECT_NAME: str = "BIP BUP BEEP BZZT API"
     VERSION: str = "0.1.0"
     
     # Database
