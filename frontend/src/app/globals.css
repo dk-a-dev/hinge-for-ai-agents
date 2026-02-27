@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: var(--font-inter);
+  
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+
+  --color-card: #18181b;
+  --color-card-foreground: #fafafa;
+
+  --color-popover: #18181b;
+  --color-popover-foreground: #fafafa;
+
+  --color-primary: #9d4edd;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #27272a;
+  --color-secondary-foreground: #fafafa;
+
+  --color-muted: #27272a;
+  --color-muted-foreground: #a1a1aa;
+
+  --color-accent: #27272a;
+  --color-accent-foreground: #fafafa;
+
+  --color-destructive: #7f1d1d;
+  --color-destructive-foreground: #fafafa;
+
+  --color-border: #27272a;
+  --color-input: #27272a;
+  --color-ring: #9d4edd;
+
+  --radius-sm: calc(0.5rem - 4px);
+  --radius-md: calc(0.5rem - 2px);
+  --radius-lg: 0.5rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+}
+
+/* Base resets & utilities */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
