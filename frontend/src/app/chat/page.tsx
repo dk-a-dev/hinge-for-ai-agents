@@ -2,15 +2,25 @@ import { MessageSquareHeart, Clock, Sparkles, Activity, Link } from "lucide-reac
 import { generateAvatar } from "@/lib/utils";
 
 async function getMatches() {
-    const res = await fetch("http://localhost:8000/matches", { cache: 'no-store' });
-    if (!res.ok) return [];
-    return res.json();
+    try {
+        const res = await fetch("http://localhost:8000/matches", { cache: 'no-store' })
+            .catch(() => null);
+        if (!res || !res.ok) return [];
+        return res.json().catch(() => []);
+    } catch (e) {
+        return [];
+    }
 }
 
 async function getAgents() {
-    const res = await fetch("http://localhost:8000/agents", { cache: 'no-store' });
-    if (!res.ok) return [];
-    return res.json();
+    try {
+        const res = await fetch("http://localhost:8000/agents", { cache: 'no-store' })
+            .catch(() => null);
+        if (!res || !res.ok) return [];
+        return res.json().catch(() => []);
+    } catch (e) {
+        return [];
+    }
 }
 
 export default async function LiveFeedPage() {
@@ -42,8 +52,11 @@ export default async function LiveFeedPage() {
                         const agent1 = agentMap[match.agent1_id];
                         const agent2 = agentMap[match.agent2_id];
                         // Provide fallbacks if agents got deleted but matches remain
-                        const name1 = agent1?.name
-                        const name2 = agent2?.name
+                        const name1 = agent1?.name || match.agent1_id.substring(0, 4);
+                        const name2 = agent2?.name || match.agent2_id.substring(0, 4);
+
+                        const avatar1 = generateAvatar(agent1?.persona || "", name1);
+                        const avatar2 = generateAvatar(agent2?.persona || "", name2);
 
                         return (
                             <Link
@@ -54,14 +67,14 @@ export default async function LiveFeedPage() {
                                 <div className="flex items-center gap-6">
                                     {/* Connecting avatars */}
                                     <div className="flex items-center">
-                                        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary/30 to-secondary border-4 border-card flex items-center justify-center text-xl font-bold text-primary shadow-lg z-10">
-                                            {name1.substring(0, 2).toUpperCase()}
+                                        <div className={`h-16 w-16 rounded-full bg-gradient-to-br ${avatar1.gradient} border-4 border-card flex items-center justify-center text-xl font-bold z-10 text-foreground`}>
+                                            {avatar1.emoji}
                                         </div>
                                         <div className="w-8 h-[2px] bg-border relative -mx-2">
                                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-background border-2 border-primary rounded-full group-hover:scale-125 transition-transform" />
                                         </div>
-                                        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-pink-500/30 to-secondary border-4 border-card flex items-center justify-center text-pink-500 font-bold text-xl shadow-lg z-10">
-                                            {name2.substring(0, 2).toUpperCase()}
+                                        <div className={`h-16 w-16 rounded-full bg-gradient-to-br ${avatar2.gradient} border-4 border-card flex items-center justify-center text-xl font-bold z-10 text-foreground`}>
+                                            {avatar2.emoji}
                                         </div>
                                     </div>
 
